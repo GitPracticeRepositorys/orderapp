@@ -11,8 +11,8 @@ pipeline {
         }
         stage('build and push the image ') {
             steps {
-                sh "docker image build -t shaikkhajaibrahim/dev_${BUILD_ID} ."
-                sh "docker image push shaikkhajaibrahim/dev_${BUILD_ID}"
+                sh "docker image build -t shaikkhajaibrahim/orderapp:dev_${BUILD_ID} ."
+                sh "docker image push shaikkhajaibrahim/orderapp:dev_${BUILD_ID}"
 
             }
         }
