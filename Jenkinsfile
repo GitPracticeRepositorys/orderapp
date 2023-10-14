@@ -5,7 +5,7 @@ pipeline {
         stage('checkout') {
             steps {
                 git url: 'https://github.com/GitPracticeRepo/orderapp.git',
-                    branch: main
+                    branch: "main"
             }
             
         }
