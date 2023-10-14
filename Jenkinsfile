@@ -11,13 +11,8 @@ pipeline {
         }
         stage('build and push the image ') {
             steps {
-                script {
-                    def imageTag = "shaikkhajaibrahim/dev_${env.BUILD_NUMBER}"
-                    sh "docker image build -t ${imageTag} ."
-                    sh "docker image push ${imageTag}"
-
-                } 
-
+                sh "docker image build -t shaikkhajaibrahim/dev_${BUILD_ID} ."
+                sh "docker image push shaikkhajaibrahim/dev_${BUILD_ID}"
 
             }
         }
