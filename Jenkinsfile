@@ -23,7 +23,7 @@ pipeline {
                   cd ~/orderopsk8s
                   git add ~/orderopsk8s/manifests/orderdeploy.yaml
                   git commit -m "added new change"
-                  git push origin master
+                  git push origin main
                 """
                 
             }
