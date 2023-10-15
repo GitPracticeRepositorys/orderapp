@@ -16,7 +16,7 @@ pipeline {
 
             }
         }
-        stage('update k8s manifest') {
+        stage('Deploy to kubernetes') {
             steps {
                 sh "cd ~/orderopsk8s && yq eval -i '.spec.template.spec.containers[0].image = \"shaikkhajaibrahim/orderapp:demo_${BUILD_ID}\" ' ~/orderopsk8s/manifests/orderdeploy.yaml"
                 sh """
@@ -24,6 +24,7 @@ pipeline {
                   git add ~/orderopsk8s/manifests/orderdeploy.yaml
                   git commit -m "added new change"
                   git push origin main
+                  sleep 30s
                 """
                 
             }
