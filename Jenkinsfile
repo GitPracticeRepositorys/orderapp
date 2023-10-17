@@ -8,19 +8,23 @@ pipeline {
                     branch: "main"
             }
         }
+
         stage('build and push the image') {
             steps {
-                sh "docker image build -t shivakrishna99/orderapp:dev_${BUILD_ID} ."
-                sh "docker image push shivakrishna99/orderapp:dev_${BUILD_ID}"
+                script {
+                    def imageName = "shivakrishna99/orderapp:dev_${BUILD_ID}"
+                    sh "docker image build -t $imageName ."
+                    sh "docker image push $imageName"
+                }
             }
         }
+
         stage('update k8s manifest') {
             steps {
                 script {
                     def orderopsk8sDir = "/home/ubuntu/orderopsk8s"
                     sh """
-                      cd $orderopsk8sDir
-                      yq eval -i '.spec.template.spec.containers[0].image = \"shivakrishna99/orderapp:dev_${BUILD_ID}\" ' manifests/orderdeploy.yaml
+                      yq eval -i '.spec.template.spec.containers[0].image = \"shivakrishna99/orderapp:dev_${BUILD_ID}\" ' $orderopsk8sDir/manifests/orderdeploy.yaml
                     """
                     sh """
                       cd $orderopsk8sDir
