@@ -2,35 +2,27 @@ pipeline {
     agent { label 'docker-node-1' }
 
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-                git url: 'https://github.com/GitPracticeRepositorys/orderapp.git',
-                    branch: "main"
+                checkout scm
             }
         }
 
-        stage('build and push the image') {
+        stage('Build and Push Docker Image') {
             steps {
                 script {
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_ID}"
+                    def orderopsk8sDir = "/home/ubuntu/orderopsk8s"
+                    
                     sh "docker image build -t $imageName ."
                     sh "docker image push $imageName"
-                }
-            }
-        }
-
-        stage('update k8s manifest') {
-            steps {
-                script {
-                    def orderopsk8sDir = "/home/ubuntu/orderopsk8s"
+                    
                     sh """
-                      yq eval -i '.spec.template.spec.containers[0].image = \"shivakrishna99/orderapp:dev_${BUILD_ID}\" ' $orderopsk8sDir/manifests/orderdeploy.yaml
-                    """
-                    sh """
-                      cd $orderopsk8sDir
-                      git add manifests/orderdeploy.yaml
-                      git commit -m "added new change"
-                      git push origin main
+                        yq eval -i '.spec.template.spec.containers[0].image = \"${imageName}\"' ${orderopsk8sDir}/manifests/orderdeploy.yaml
+                        cd ${orderopsk8sDir}
+                        git add manifests/orderdeploy.yaml
+                        git commit -m "Added new change"
+                        git push origin main
                     """
                 }
             }
