@@ -13,7 +13,7 @@ pipeline {
                 script {
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_ID}"
                     def orderopsk8sDir = "/home/ubuntu/orderopsk8s"
-                    def yqPath = "/usr/local/bin/yq" // Use the correct full path to yq
+                    def yqPath = "/home/ubuntu/snap/yq" // Use the correct full path to yq
 
                     sh "docker image build -t $imageName ."
                     sh "docker image push $imageName"
