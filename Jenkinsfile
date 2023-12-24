@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker-node-1' }
+    agent any
 
     environment {
         orderappRepo = 'https://github.com/GitPracticeRepositorys/orderapp.git'
@@ -18,7 +18,11 @@ pipeline {
         stage('VCS - Kustomize Config') {
             steps {
                 // Checkout the Git repository for Kustomize configurations
-                git branch: 'main', url: kustomizeRepo, dir: 'kustomize-config'
+                script {
+                    dir('kustomize-config') {
+                        git branch: 'main', url: kustomizeRepo
+                    }
+                }
             }
         }
 
