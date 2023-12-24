@@ -1,18 +1,31 @@
 pipeline {
-    agent { label 'docker-node-1' }
+    agent any
+
+    environment {
+        orderappRepo = 'https://github.com/GitPracticeRepositorys/orderapp.git'
+        kustomizeRepo = 'https://github.com/GitPracticeRepositorys/kustomize-config.git'
+        kustomizePath = '/usr/local/bin/kustomize'
+    }
 
     stages {
-        stage('vcs') {
+        stage('VCS - Order App') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/GitPracticeRepositorys/orderapp.git'
+                // Checkout the Git repository for the main application
+                git branch: 'main', url: orderappRepo
             }
         }
 
-        stage('build and deploy') {
+        stage('VCS - Kustomize Config') {
+            steps {
+                // Checkout the Git repository for Kustomize configurations
+                git branch: 'main', url: kustomizeRepo, dir: 'kustomize-config'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
             steps {
                 script {
-                    // Build and push Docker image without explicit registry authentication
+                    // Build and push Docker image
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_ID}"
                     docker.build(imageName, '.').push()
                 }
@@ -21,9 +34,17 @@ pipeline {
 
         stage('Kustomize Deploy') {
             steps {
-                // Use Kustomize to apply the Kubernetes configuration
-                sh "cd kustomize/orderopsk8s/base/kustomization.yaml && kustomize build . | kubectl apply -f -"
+                script {
+                    // Use Kustomize to apply the Kubernetes configuration
+                    sh "cd kustomize-config/base && $kustomizePath build . | kubectl apply -f -"
+                }
             }
+        }
+    }
+
+    post {
+        always {
+            // Clean up steps, if needed
         }
     }
 }
