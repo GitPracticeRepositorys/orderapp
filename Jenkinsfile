@@ -1,46 +1,30 @@
 pipeline {
     agent { label 'docker-node-1' }
-
-    environment {
-        orderappRepo = 'https://github.com/GitPracticeRepositorys/orderapp.git'
-        kustomizeRepo = 'https://github.com/GitPracticeRepositorys/kustomize-config.git'
-        kustomizePath = '/usr/local/bin/kustomize'
-    }
-
+    
     stages {
-        stage('VCS - Order App') {
+        stage('Checkout') {
             steps {
-                // Checkout the Git repository for the main application
-                git branch: 'main', url: orderappRepo
-            }
-        }
-
-        stage('VCS - Kustomize Config') {
-            steps {
-                // Checkout the Git repository for Kustomize configurations
-                script {
-                    dir('kustomize-config') {
-                        git branch: 'main', url: kustomizeRepo
-                    }
-                }
+                checkout scm
             }
         }
 
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    // Build and push Docker image
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_ID}"
-                    docker.build(imageName, '.').push()
-                }
-            }
-        }
+                    def orderopsk8sDir = "/home/ubuntu/orderopsk8s"
+                    def yqPath = "/usr/local/bin/yq" // Use the correct full path to yq
 
-        stage('Kustomize Deploy') {
-            steps {
-                script {
-                    // Use Kustomize to apply the Kubernetes configuration
-                    sh "cd kustomize-config/base && $kustomizePath build . | kubectl apply -f -"
+                    sh "docker image build -t $imageName ."
+                    sh "docker image push $imageName"
+
+                    sh """
+                        $yqPath eval -i '.spec.template.spec.containers[0].image = \"${imageName}\"' ${orderopsk8sDir}/manifests/orderdeploy.yaml
+                        cd ${orderopsk8sDir}
+                        git add manifests/orderdeploy.yaml
+                        git commit -m "Added new change"
+                        git push origin main
+                    """
                 }
             }
         }
