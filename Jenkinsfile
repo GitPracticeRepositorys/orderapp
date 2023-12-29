@@ -1,31 +1,22 @@
 pipeline {
     agent { label 'docker-node-1' }
-    
     stages {
-        stage('Checkout') {
+        stage('vcs') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/GitPracticeRepositorys/orderapp.git'
             }
         }
-
-        stage('Build and Push Docker Image') {
+        stage('build and deploy') {
             steps {
-                script {
-                    def imageName = "shivakrishna99/orderapp:dev_${BUILD_ID}"
-                    def orderopsk8sDir = "/home/ubuntu/orderopsk8s"
-                    def yqPath = "/usr/local/bin/yq" // Use the correct full path to yq
-
-                    sh "docker image build -t $imageName ."
-                    sh "docker image push $imageName"
-
-                    sh """
-                        $yqPath eval -i '.spec.template.spec.containers[0].image = \"${imageName}\"' ${orderopsk8sDir}/manifests/orderdeploy.yaml
-                        cd ${orderopsk8sDir}
-                        git add manifests/orderdeploy.yaml
-                        git commit -m "Added new change"
-                        git push origin main
-                    """
-                }
+                sh "docker image build -t shivakrishna99/"shivakrishna99/orderapp:dev_${BUILD_ID} ."
+                sh "docker image push shivakrishna99/"shivakrishna99/orderapp:dev_${BUILD_ID}"
+            }
+        }
+        stage('Kustomize Deploy') {
+            steps {
+                // Use Kustomize to apply the Kubernetes configuration
+                sh "cd deployments/courses && kustomize build . | kubectl apply -f -"
             }
         }
     }
