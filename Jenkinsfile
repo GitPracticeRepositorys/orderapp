@@ -13,6 +13,7 @@ pipeline {
                 script {
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
                     def orderopsk8sDir = env.HOME + "/orderopsk8s"
+                    def kustomizepath = "/usr/local/bin/kustomize"
                     sh "docker image build -t shivakrishna99/orderapp:dev_${BUILD_NUMBER} ."
                     sh "docker image push shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
                 }
