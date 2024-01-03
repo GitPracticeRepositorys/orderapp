@@ -22,6 +22,7 @@ pipeline {
 
         stage('Update Kustomize and Push') {
             steps {
+                agent { label 'docker-node' }
                 script {
                     def kustomizeRepoDir = env.HOME + "/orderopsk8s"
 
