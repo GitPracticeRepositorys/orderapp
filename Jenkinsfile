@@ -34,7 +34,7 @@ pipeline {
                         url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
                     
                     // Navigate to the kustomize directory
-                    dir("orderopsk8s/kustomize/orderopsk8s/base") {
+                    dir("orderopsk8s/kustomize/orderopsk8s/") {
                         // Check if kustomization.yaml exists
                         sh 'ls -la'  // Debugging output
                         if (!fileExists('kustomization.yaml')) {
