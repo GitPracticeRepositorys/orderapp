@@ -22,6 +22,8 @@ pipeline {
         stage('Kustomize Deploy') {
             agent { label 'docker-node' }
             steps {
+                git branch: 'dev',
+                    url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
                 // Use Kustomize to apply the Kubernetes configuration
                 sh "cd orderopsk8s/kustomize/orderopsk8s/base"
                 sh 'kubectl apply -k .'
