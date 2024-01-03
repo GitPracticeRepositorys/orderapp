@@ -16,13 +16,13 @@ pipeline {
 
                     sh "docker image build -t $imageName ."
                     sh "docker image push $imageName"
-                    
-                    // Assuming your Kustomize overlay is in the 'kustomize' directory
+
+                    // Path to the kustomization.yaml file
                     def kustomizeDir = "${orderopsk8sDir}/kustomize"
 
                     // Use Kustomize to update the image in the Kubernetes manifests
                     sh """
-                        kustomize edit set image my-container=${imageName}
+                        /usr/local/bin/kustomize edit set image my-container=${imageName}
                         cd ${kustomizeDir}
                         git add .
                         git diff --quiet || git commit -m 'Update container image'
