@@ -36,7 +36,7 @@ pipeline {
                     // Use Kustomize to apply the Kubernetes configuration
                     dir("orderopsk8s/kustomize/orderopsk8s/base") {
                         sh 'ls -la'  // Debugging output
-                        sh "${KUSTOMIZE_PATH} edit set image order=${DOCKER_IMAGE_NAME}"
+                        sh "${/usr/local/bin/kustomize} edit set image order=${shivakrishna99/orderapp:dev_21}"
                         sh "kubectl apply -k overlays/dev"
                     }
                 }
