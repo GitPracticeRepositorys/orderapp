@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'docker-node-1' }
     triggers { pollSCM('* * * * *') }
-
+    
     environment {
         DOCKER_IMAGE_NAME = "shivakrishna99/orderapp:develop-${BUILD_NUMBER}"
         KUSTOMIZE_PATH = "/usr/local/bin/kustomize"
@@ -33,10 +33,19 @@ pipeline {
                     git branch: 'dev',
                         url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
                     
-                    // Use Kustomize to apply the Kubernetes configuration
+                    // Navigate to the kustomize directory
                     dir("orderopsk8s/kustomize/orderopsk8s/base") {
+                        // Check if kustomization.yaml exists
                         sh 'ls -la'  // Debugging output
+                        if (!fileExists('kustomization.yaml')) {
+                            // Create a basic kustomization.yaml file
+                            writeFile file: 'kustomization.yaml', text: 'resources:\n- orderdeploy.yaml\n'
+                        }
+                        
+                        // Set the Docker image in kustomization.yaml
                         sh "${KUSTOMIZE_PATH} edit set image order='${DOCKER_IMAGE_NAME}'"
+                        
+                        // Apply the Kubernetes configuration
                         sh "kubectl apply -k overlays/dev"
                     }
                 }
