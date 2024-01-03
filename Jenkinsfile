@@ -10,7 +10,7 @@ pipeline {
         }
         stage('build and deploy') {
             steps {
-                sh "docker image build -t shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
+                sh "docker image build -t shivakrishna99/orderapp:dev_${BUILD_NUMBER} ."
                 sh "docker image push shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
             }
         }
