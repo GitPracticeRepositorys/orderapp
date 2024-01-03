@@ -5,7 +5,7 @@ pipeline {
         stage('vcs') {
             steps {
                 git branch: 'develop',
-                    url: 'https://github.com/GitPracticeRepositorys/StudentCoursesRestAPI.git'
+                    url: 'https://github.com/GitPracticeRepositorys/orderapp.git'
             }
         }
         stage('build and deploy') {
