@@ -46,7 +46,15 @@ pipeline {
                         sh "${KUSTOMIZE_PATH} edit set image order='${DOCKER_IMAGE_NAME}'"
                         
                         // Apply the Kubernetes configuration
-                        sh "kubectl apply -k overlays/dev"
+                        dir("overlays/dev") {
+                            // Edit deployment or other resources if needed
+                            // For example, you can use sed or other tools to modify deployment.yaml
+                            // Here, we use sed to replace a placeholder with the Docker image
+                            sh "sed -i 's|<IMAGE_PLACEHOLDER>|${DOCKER_IMAGE_NAME}|' deployment.yaml"
+                            
+                            // Apply the modified deployment
+                            sh "kubectl apply -k ."
+                        }
                     }
                 }
             }
