@@ -12,8 +12,6 @@ pipeline {
             steps {
                 script {
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
-                    def orderopsk8sDir = env.HOME + "/orderopsk8s"
-                    def kustomizepath = "/usr/local/bin/kustomize"
                     sh "docker image build -t ${imageName} ."
                     sh "docker image push ${imageName}"
                 }
@@ -27,6 +25,7 @@ pipeline {
                         url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
                     // Use Kustomize to apply the Kubernetes configuration
                     dir("orderopsk8s/kustomize/orderopsk8s/base") {
+                        sh 'ls -la'  // Debugging output
                         sh 'kubectl apply -k .'
                     }
                 }
