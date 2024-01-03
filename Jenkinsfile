@@ -33,28 +33,15 @@ pipeline {
                     git branch: 'dev',
                         url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
                     
-                    // Navigate to the kustomize directory
-                    dir("orderopsk8s/kustomize/orderopsk8s/") {
-                        // Check if kustomization.yaml exists
-                        sh 'ls -la'  // Debugging output
-                        if (!fileExists('kustomization.yaml')) {
-                            // Create a basic kustomization.yaml file
-                            writeFile file: 'kustomization.yaml', text: 'resources:\n- orderdeploy.yaml\n'
-                        }
+                    // Navigate to the overlays/dev directory
+                    dir("orderopsk8s/kustomize/orderopsk8s/overlays/dev") {
+                        // Edit deployment or other resources if needed
+                        // For example, you can use sed or other tools to modify deployment.yaml
+                        // Here, we use sed to replace a placeholder with the Docker image
+                        sh "sed -i 's|<IMAGE_PLACEHOLDER>|${DOCKER_IMAGE_NAME}|' deployment.yaml"
                         
-                        // Set the Docker image in kustomization.yaml
-                        sh "${KUSTOMIZE_PATH} edit set image order='${DOCKER_IMAGE_NAME}'"
-                        
-                        // Apply the Kubernetes configuration
-                        dir("overlays/dev") {
-                            // Edit deployment or other resources if needed
-                            // For example, you can use sed or other tools to modify deployment.yaml
-                            // Here, we use sed to replace a placeholder with the Docker image
-                            sh "sed -i 's|<IMAGE_PLACEHOLDER>|${DOCKER_IMAGE_NAME}|' deployment.yaml"
-                            
-                            // Apply the modified deployment
-                            sh "kubectl apply -k ."
-                        }
+                        // Apply the modified deployment
+                        sh "kubectl apply -k ."
                     }
                 }
             }
