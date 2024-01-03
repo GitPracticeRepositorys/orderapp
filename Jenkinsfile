@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'docker-node-1' }
     triggers { pollSCM('* * * * *') }
-    
+
     environment {
         DOCKER_IMAGE_NAME = "shivakrishna99/orderapp:develop-${BUILD_NUMBER}"
         KUSTOMIZE_PATH = "/usr/local/bin/kustomize"
@@ -32,16 +32,14 @@ pipeline {
                     // Clone the orderopsk8s repository
                     git branch: 'dev',
                         url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
-                    
+
                     // Navigate to the overlays/dev directory
                     dir("orderopsk8s/kustomize/orderopsk8s/overlays/dev") {
-                        // Edit deployment or other resources if needed
-                        // For example, you can use sed or other tools to modify deployment.yaml
-                        // Here, we use sed to replace a placeholder with the Docker image
-                        sh "sed -i 's|<IMAGE_PLACEHOLDER>|${DOCKER_IMAGE_NAME}|' deployment.yaml"
-                        
-                        // Apply the modified deployment
-                        sh "kubectl apply -k ."
+                        // Use kustomize to set the image in kustomization.yaml
+                        sh "${KUSTOMIZE_PATH} edit set image order=${DOCKER_IMAGE_NAME}"
+
+                        // Apply the configuration using kubectl
+                        sh "${KUSTOMIZE_PATH} build . | kubectl apply -f -"
                     }
                 }
             }
