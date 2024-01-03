@@ -1,21 +1,21 @@
 pipeline {
     agent { label 'docker-node-1' }
     triggers { pollSCM('* * * * *') }
-
+    
     environment {
         DOCKER_IMAGE_NAME = "shivakrishna99/orderapp:develop-${BUILD_NUMBER}"
         KUSTOMIZE_PATH = "/usr/local/bin/kustomize"
     }
 
     stages {
-        stage('vcs') {
+        stage('VCS - Application Code') {
             steps {
                 git branch: 'dev',
                     url: 'https://github.com/GitPracticeRepositorys/orderapp.git'
             }
         }
 
-        stage('build and deploy') {
+        stage('Build and Deploy - Application Code') {
             steps {
                 script {
                     // Build and push Docker image
@@ -25,21 +25,22 @@ pipeline {
             }
         }
 
+        stage('VCS - Kubernetes Manifests') {
+            agent { label 'docker-node' }
+            steps {
+                git branch: 'dev',
+                    url: 'https://github.com/GitPracticeRepositorys/orderappk8s.git'
+            }
+        }
+
         stage('Kustomize Deploy') {
             agent { label 'docker-node' }
             steps {
                 script {
-                    // Clone the orderopsk8s repository
-                    git branch: 'dev',
-                        url: 'https://github.com/GitPracticeRepositorys/orderopsk8s.git'
-
-                    // Navigate to the overlays/dev directory
-                    dir("orderopsk8s/kustomize/orderopsk8s/overlays/dev") {
-                        // Use kustomize to set the image in kustomization.yaml
+                    // Use Kustomize to apply the Kubernetes configuration
+                    dir("orderappk8s/kustomize/orderopsk8s/overlays/dev") {
                         sh "${KUSTOMIZE_PATH} edit set image order=${DOCKER_IMAGE_NAME}"
-
-                        // Apply the configuration using kubectl
-                        sh "${KUSTOMIZE_PATH} build . | kubectl apply -f -"
+                        sh "kubectl apply -k ."
                     }
                 }
             }
