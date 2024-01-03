@@ -1,47 +1,33 @@
 pipeline {
     agent { label 'docker-node-1' }
-    triggers { pollSCM('* * * * *') }
-    
-    environment {
-        DOCKER_IMAGE_NAME = "shivakrishna99/orderapp:develop-${BUILD_NUMBER}"
-        KUSTOMIZE_PATH = "/usr/local/bin/kustomize"
-    }
 
     stages {
-        stage('VCS - Application Code') {
+        stage('Checkout') {
             steps {
-                git branch: 'dev',
-                    url: 'https://github.com/GitPracticeRepositorys/orderapp.git'
+                checkout scm
             }
         }
 
-        stage('Build and Deploy - Application Code') {
+        stage('Build and Push Docker Image') {
             steps {
                 script {
-                    // Build and push Docker image
-                    sh "docker image build -t ${DOCKER_IMAGE_NAME} ."
-                    sh "docker image push ${DOCKER_IMAGE_NAME}"
-                }
-            }
-        }
+                    def imageName = "shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
+                    def orderopsk8sDir = env.HOME + "/orderopsk8s"
 
-        stage('VCS - Kubernetes Manifests') {
-            agent { label 'docker-node' }
-            steps {
-                git branch: 'dev',
-                    url: 'https://github.com/GitPracticeRepositorys/orderappk8s.git'
-            }
-        }
+                    sh "docker image build -t $imageName ."
+                    sh "docker image push $imageName"
+                    
+                    // Assuming your Kustomize overlay is in the 'kustomize' directory
+                    def kustomizeDir = "${orderopsk8sDir}/kustomize"
 
-        stage('Kustomize Deploy') {
-            agent { label 'docker-node' }
-            steps {
-                script {
-                    // Use Kustomize to apply the Kubernetes configuration
-                    dir("orderappk8s/kustomize/orderopsk8s/overlays/dev") {
-                        sh "${KUSTOMIZE_PATH} edit set image order=${DOCKER_IMAGE_NAME}"
-                        sh "kubectl apply -k ."
-                    }
+                    // Use Kustomize to update the image in the Kubernetes manifests
+                    sh """
+                        kustomize edit set image my-container=${imageName}
+                        cd ${kustomizeDir}
+                        git add .
+                        git diff --quiet || git commit -m 'Update container image'
+                        git push origin dev
+                    """
                 }
             }
         }
