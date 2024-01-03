@@ -22,7 +22,7 @@ pipeline {
             agent { label 'docker-node' }
             steps {
                 // Use Kustomize to apply the Kubernetes configuration
-                sh "cd kustomize/orderopsk8s/base
+                sh "cd kustomize/orderopsk8s/base"
                 sh 'kubectl apply -k .'
             }
         }
