@@ -2,9 +2,11 @@ pipeline {
     agent { label 'docker-node-1' }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout OrderApp') {
             steps {
-                checkout scm
+                script {
+                    checkout([$class: 'GitSCM', branches: [[name: 'dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/GitPracticeRepositorys/orderapp.git']]])
+                }
             }
         }
 
@@ -12,20 +14,25 @@ pipeline {
             steps {
                 script {
                     def imageName = "shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
-                    def orderopsk8sDir = env.HOME + "/orderopsk8s"
-
                     sh "docker image build -t $imageName ."
                     sh "docker image push $imageName"
+                }
+            }
+        }
 
-                    // Path to the kustomization.yaml file
-                    def kustomizeDir = "${orderopsk8sDir}/kustomize"
+        stage('Update Kustomize and Push') {
+            steps {
+                script {
+                    def kustomizeRepoDir = env.HOME + "/orderopsk8s"
 
-                    // Use Kustomize to update the image in the Kubernetes manifests
+                    // Update the image in Kustomize
                     sh """
-                        /usr/local/bin/kustomize edit set image my-container=${imageName}
-                        cd ${kustomizeDir}
+                        /usr/local/bin/kustomize edit set image my-container=shivakrishna99/orderapp:dev_${BUILD_NUMBER}
+                        cd ${kustomizeRepoDir}
+                        git config --global user.email "knowledgesk9999@gmail.com"
+                        git config --global user.name "GitPracticeRepositorys"
                         git add .
-                        git diff --quiet || git commit -m 'Update container image'
+                        git commit -m "Update container image"
                         git push origin dev
                     """
                 }
