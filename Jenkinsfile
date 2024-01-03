@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'docker-node-1' }
     triggers { pollSCM('* * * * *') }
-    
+
     environment {
         DOCKER_IMAGE_NAME = "shivakrishna99/orderapp:develop-${BUILD_NUMBER}"
         KUSTOMIZE_PATH = "/usr/local/bin/kustomize"
@@ -36,7 +36,7 @@ pipeline {
                     // Use Kustomize to apply the Kubernetes configuration
                     dir("orderopsk8s/kustomize/orderopsk8s/base") {
                         sh 'ls -la'  // Debugging output
-                        sh "${/usr/local/bin/kustomize} edit set image order=${shivakrishna99/orderapp:dev_21}"
+                        sh "${KUSTOMIZE_PATH} edit set image order='${DOCKER_IMAGE_NAME}'"
                         sh "kubectl apply -k overlays/dev"
                     }
                 }
