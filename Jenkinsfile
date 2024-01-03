@@ -1,42 +1,25 @@
 pipeline {
     agent { label 'docker-node-1' }
-
+    triggers { pollSCM('* * * * *') }
     stages {
-        stage('Checkout OrderApp') {
+        stage('vcs') {
             steps {
-                script {
-                    checkout([$class: 'GitSCM', branches: [[name: 'dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/GitPracticeRepositorys/orderapp.git']]])
-                }
+                git branch: 'develop',
+                    url: 'https://github.com/GitPracticeRepositorys/StudentCoursesRestAPI.git'
             }
         }
-
-        stage('Build and Push Docker Image') {
+        stage('build and deploy') {
             steps {
-                script {
-                    def imageName = "shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
-                    sh "docker image build -t $imageName ."
-                    sh "docker image push $imageName"
-                }
+                sh "docker image build -t shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
+                sh "docker image push shivakrishna99/orderapp:dev_${BUILD_NUMBER}"
             }
         }
-
-        stage('Update Kustomize and Push') {
+        stage('Kustomize Deploy') {
+            agent { label 'docker-node' }
             steps {
-                agent { label 'docker-node' }
-                script {
-                    def kustomizeRepoDir = env.HOME + "/orderopsk8s"
-
-                    // Update the image in Kustomize
-                    sh """
-                        /usr/local/bin/kustomize edit set image my-container=shivakrishna99/orderapp:dev_${BUILD_NUMBER}
-                        cd ${kustomizeRepoDir}
-                        git config --global user.email "knowledgesk9999@gmail.com"
-                        git config --global user.name "GitPracticeRepositorys"
-                        git add .
-                        git commit -m "Update container image"
-                        git push origin dev
-                    """
-                }
+                // Use Kustomize to apply the Kubernetes configuration
+                sh "cd orderopsk8s/kustomize/orderopsk8s/overlays/dev && kustomize edit set image courses=shivakrishna99/courses:develop-$env.BUILD_ID"
+                sh 'kubectl apply -k kustomize/orderopsk8s/overlays/dev'
             }
         }
     }
